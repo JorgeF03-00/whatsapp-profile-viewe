@@ -1,13 +1,15 @@
+
 {
-  "name": "whatsapp-profile-viewer",
+  "name": "whatsapp-image-viewer",
   "version": "1.0.0",
+  "description": "Servidor Node.js para obter imagem de perfil do WhatsApp via GET",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "node-fetch": "^3.3.2"
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
   }
 }

@@ -1,61 +1,44 @@
-import express from 'express';
-import fetch from 'node-fetch';
 
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
-const RAPID_API_KEY = 'ad0ce823edmshdfd53f16008ff40p125302jsna06243bc1ce8';
-const RAPID_API_HOST = 'whatsapp-data.p.rapidapi.com';
+app.use(cors());
+app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Servidor online');
-});
+const apiKey = 'ad0ce823edmshdfd53f16008ff40p125302jsna06243bc1ce8';
+const apiHost = 'whatsapp-data.p.rapidapi.com';
 
-app.get('/analise', async (req, res) => {
-  const telefone = req.query.tel;
-  if (!telefone) return res.status(400).send('Número não fornecido');
+app.get('/generate', async (req, res) => {
+    const phone = req.query.phone;
 
-  try {
-    const response = await fetch(`https://${RAPID_API_HOST}/wspicture?phone=${telefone}`, {
-      method: 'GET',
-      headers: {
-        'X-RapidAPI-Key': RAPID_API_KEY,
-        'X-RapidAPI-Host': RAPID_API_HOST
-      }
-    });
-
-    const data = await response.json();
-
-    if (!data || !data.profilePic) {
-      return res.send(`<h2>Foto não disponível</h2><p>Para: ${telefone}</p>`);
+    if (!phone) {
+        return res.status(400).json({ error: 'Parâmetro "phone" é obrigatório' });
     }
 
-    const html = `
-      <html>
-        <head>
-          <title>WhatsSpy - Consulta</title>
-          <style>
-            body { font-family: Arial; text-align: center; margin-top: 40px; background: #fff; color: #222; }
-            img { border-radius: 50%; width: 180px; height: 180px; object-fit: cover; }
-            .phone { color: green; font-weight: bold; font-size: 20px; margin-top: 12px; }
-            .status { font-size: 24px; margin-top: 10px; font-weight: 600; color: #00C851; }
-          </style>
-        </head>
-        <body>
-          <img src="${data.profilePic}" alt="Foto de Perfil" />
-          <div class="phone">+${telefone}</div>
-          <div class="status">Analisando...</div>
-        </body>
-      </html>
-    `;
+    try {
+        const response = await axios.get(`https://${apiHost}/wspicture`, {
+            params: { phone },
+            headers: {
+                'X-RapidAPI-Key': apiKey,
+                'X-RapidAPI-Host': apiHost
+            }
+        });
 
-    res.send(html);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Erro na consulta');
-  }
+        const profilePic = response.data.profilePic;
+
+        if (!profilePic) {
+            return res.status(404).json({ error: 'Imagem não encontrada' });
+        }
+
+        return res.redirect(profilePic);
+    } catch (error) {
+        return res.status(500).json({ error: 'Erro ao buscar imagem', details: error.message });
+    }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}`);
 });
